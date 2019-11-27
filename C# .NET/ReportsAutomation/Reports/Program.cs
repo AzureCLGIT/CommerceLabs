@@ -20,27 +20,38 @@ namespace Reports
 {
     class Program
     {
-        // Data Lake Store File System Management Client
-        private static DataLakeStoreFileSystemManagementClient adlsFileSystemClient;
+        // Azure Prerequisites
+        private static DataLakeStoreFileSystemManagementClient adlsFileSystemClient;  // Data Lake Store File System Management Client
+        private static string AzureClientId = ConfigurationManager.AppSettings["AzureClientID"];  // Application ID [Client ID]
+        private static string AzureClientSecret = ConfigurationManager.AppSettings["AzureClientSecret"];  // Client Secret Key
+        private static string AzureTenantId = ConfigurationManager.AppSettings["AzureTenantID"];  // Directory ID [Tenant ID]
+        private static string AdlsAccountName = ConfigurationManager.AppSettings["AzureDataLakeName"];  // Name of the Azure Data Lake Store
 
-        // Application ID [Client ID]
-        private static string clientId = ConfigurationManager.AppSettings["ClientID"];
+        // Seller Central Prerequisites
+        private static string SC_LoginID = ConfigurationManager.AppSettings["SC_LoginID"]; // Seller Central Login ID
+        private static string SC_LoginPwd = ConfigurationManager.AppSettings["SC_LoginPwd"]; // Seller Central Password
 
-        // Client Secret Key
-        private static string clientSecret = ConfigurationManager.AppSettings["ClientSecret"];
+        // Amazon Advertised Product Prerequisites
+        private static string ADS_RefreshToken = ConfigurationManager.AppSettings["ADS_RefreshToken"]; // Amazon ADS Refresh Token
+        private static string ADS_ClientID = ConfigurationManager.AppSettings["ADS_ClientID"]; // Amazon ADS Client ID
+        private static string ADS_ClientSecret = ConfigurationManager.AppSettings["ADS_ClientSecret"]; // Amazon ADS Client Secret Key
+        private static string ADS_Scope = ConfigurationManager.AppSettings["ADS_Scope"]; // Amazon ADS Scope
 
-        // Directory ID [Tenant ID]
-        private static string tenantId = ConfigurationManager.AppSettings["TenantID"];
+        // WorldPack Prerequisites
+        private static string WP_Authorization = ConfigurationManager.AppSettings["WP_Authorization"]; // WorldPack Authorisation Token
 
-        // Name of the Azure Data Lake Store
-        private static string adlsAccountName = ConfigurationManager.AppSettings["AzureDataLakeName"];
+        // Amazon MWS Prerequisites
+        private static string MWS_AccessID = ConfigurationManager.AppSettings["MWS_AccessID"]; //Amazon MWS Access Key ID
+        private static string MWS_SecretKey = ConfigurationManager.AppSettings["MWS_SecretKey"]; // Amazon MWS Secret Access Key
+        private static string MWS_MerchantID = ConfigurationManager.AppSettings["MWS_MerchantID"]; // Amazon MWS Merchant ID
+        private static string MWS_AuthToken = ConfigurationManager.AppSettings["MWS_AuthToken"]; // Amazon MWS Auth Token
 
         static void Main(string[] args)
         {
             // Azure Data Lake Initialisation
             SynchronizationContext.SetSynchronizationContext(new SynchronizationContext());
-            var clientCredential = new ClientCredential(clientId, clientSecret);
-            var creds = ApplicationTokenProvider.LoginSilentAsync(tenantId, clientCredential).Result;
+            var clientCredential = new ClientCredential(AzureClientId, AzureClientSecret);
+            var creds = ApplicationTokenProvider.LoginSilentAsync(AzureTenantId, clientCredential).Result;
             adlsFileSystemClient = new DataLakeStoreFileSystemManagementClient(creds);
             // Azure Source and Destination Variable 
             string Azuresource = "", Azuredestination = "";
@@ -69,8 +80,8 @@ namespace Reports
             // Amazon Seller Central Login Page
             driver.Navigate().GoToUrl("https://sellercentral.amazon.com/");
             driver.FindElement(By.ClassName("secondary")).Click();
-            driver.FindElement(By.Id("ap_email")).SendKeys("geethanjali@jumpstartninja.com");
-            driver.FindElement(By.Id("ap_password")).SendKeys("C@d3U$^#7");
+            driver.FindElement(By.Id("ap_email")).SendKeys(SC_LoginID);
+            driver.FindElement(By.Id("ap_password")).SendKeys(SC_LoginPwd);
             driver.FindElement(By.Id("signInSubmit")).Click();
 
             //// Generating OTP
@@ -177,7 +188,7 @@ namespace Reports
             // Uploading Business Report to Azure Data Lake
             Azuresource = directoryFullPath + @"BusinessReport-" + System.DateTime.Now.ToString("dd/MM/yyyy") + ".csv";
             Azuredestination = "Meal prep haven/CA_AO/Business Reports/" + "BusinessReport-" + System.DateTime.Now.ToString("dd/MM/yyyy") + ".csv";
-            adlsFileSystemClient.FileSystem.UploadFile(adlsAccountName, Azuresource, Azuredestination, 1, false, true);
+            adlsFileSystemClient.FileSystem.UploadFile(AdlsAccountName, Azuresource, Azuredestination, 1, false, true);
             Console.WriteLine("Uploaded Business Report");
 
             // Deleting the Business Report Files
@@ -222,7 +233,7 @@ namespace Reports
             // Uploading Reserved Inventory Report to Azure Data Lake
             Azuresource = directoryFullPath + "ReservedInventoryReport.csv";
             Azuredestination = "Meal prep haven/CA_AO/Reserved Inventory Reports/" + "ReservedInventoryReport-" + System.DateTime.Now.ToString("dd/MM/yyyy") + ".csv";
-            adlsFileSystemClient.FileSystem.UploadFile(adlsAccountName, Azuresource, Azuredestination, 1, false, true);
+            adlsFileSystemClient.FileSystem.UploadFile(AdlsAccountName, Azuresource, Azuredestination, 1, false, true);
             Console.WriteLine("Uploaded Reserved Inventory Report");
 
             // Deleting the Reserved Inventory Report File
@@ -267,7 +278,7 @@ namespace Reports
             // Uploading Reserved Inventory Report to Azure Data Lake
             Azuresource = directoryFullPath + "ManagedInventoryReport.csv";
             Azuredestination = "Meal prep haven/CA_AO/Managed Inventory Reports/" + "ManagedInventoryReport-" + System.DateTime.Now.ToString("dd/MM/yyyy") + ".csv";
-            adlsFileSystemClient.FileSystem.UploadFile(adlsAccountName, Azuresource, Azuredestination, 1, false, true);
+            adlsFileSystemClient.FileSystem.UploadFile(AdlsAccountName, Azuresource, Azuredestination, 1, false, true);
             Console.WriteLine("Uploaded Managed Inventory Report");
 
             // Deleting the Managed Inventory Report File
@@ -320,7 +331,7 @@ namespace Reports
             // Uploading Payment Report to Azure Data Lake
             Azuresource = directoryFullPath + "PaymentReport.csv";
             Azuredestination = "Meal prep haven/CA_AO/Payment Reports/" + "PaymentReport-" + System.DateTime.Now.ToString("dd/MM/yyyy") + ".csv";
-            adlsFileSystemClient.FileSystem.UploadFile(adlsAccountName, Azuresource, Azuredestination, 1, false, true);
+            adlsFileSystemClient.FileSystem.UploadFile(AdlsAccountName, Azuresource, Azuredestination, 1, false, true);
             Console.WriteLine("Uploaded Payment Report");
 
             // Deleting the Payment Report File
@@ -367,7 +378,7 @@ namespace Reports
             // Uploading Storage Fees Report to Azure Data Lake
             Azuresource = directoryFullPath + "StorageFeesReport.csv";
             Azuredestination = "Meal prep haven/CA_AO/Storage Fees Reports/" + "StorageFeesReport-" + System.DateTime.Now.ToString("dd/MM/yyyy") + ".csv";
-            adlsFileSystemClient.FileSystem.UploadFile(adlsAccountName, Azuresource, Azuredestination, 1, false, true);
+            adlsFileSystemClient.FileSystem.UploadFile(AdlsAccountName, Azuresource, Azuredestination, 1, false, true);
             Console.WriteLine("Uploaded Storage Fees Report");
 
             // Deleting the Storage Fees Report File
@@ -381,9 +392,9 @@ namespace Reports
             var request1 = new RestRequest(Method.POST);
             request1.AddHeader("Content-Type", "application/x-www-form-urlencoded");
             request1.AddParameter("grant_type", "refresh_token");
-            request1.AddParameter("refresh_token", "Atzr|IwEBIObNzzMOX3Gq_sQ5SPTDtOPJim9G0Xm4hadZPi-YCnELc2Yk3sgP_exRasNqAXUdyG3-gioAZXvQ9lxUupPfMrnyt-6ZG5wudtapN2uQiZg3rKc5f54SQN7S-wCypUX6cOPWLkNqmJjIhQHjfR6S_4XjnZjp6k0fP7wNzGdDOLTIC7FuMZiv296MChlou21o9093Iuip9IREfNfOmQ1CXNhag9r6i6xdAM3TtSuPRKAmnq-oUEE4M9FInZ4dtP_-SK-j8dUS0z8fAF5qMqYuk87b4GGyE9YXxFf5Oi7plqlEPB9P1Behbfis0zp_3V9lkauFKFfnQNGi-LRLh7Lz-2dTiLUJovYkhHBYIFhZ9X7k82aBzW_tmdcxkjBnCqjqUsQ8-JGoHXePC6qbX_Y5DS-r2Hdfi9ecNkL4GayVAbyt5QwUfNHwTHRsV37ifoOmy6AjvICk4gfE07Sm1s-8txyWnHGC6sEC28wxwona6TLF1mDYJJh0z8O4IUzd7oZIX9poEv-XMrfxtpYdAMGhoSr3qSE1l8a-4ic80wTI4aGitafdSr1uB3KjqHwUcslKPegIUE3cjKPXp1fH251PhLjq");
-            request1.AddParameter("client_id", "amzn1.application-oa2-client.79700b2ae79b4ae48f45afdec2003770");
-            request1.AddParameter("client_secret", "51f70490ddb246385606d613a44794616de5d6f60e0112b3ba2b9f5310e344ff");
+            request1.AddParameter("refresh_token", ADS_RefreshToken);
+            request1.AddParameter("client_id", ADS_ClientID);
+            request1.AddParameter("client_secret", ADS_ClientSecret);
             IRestResponse response1 = client1.Execute(request1);
             dynamic result1 = JsonConvert.DeserializeObject(response1.Content);
             string ADS_AccessToken = result1.access_token;
@@ -393,8 +404,8 @@ namespace Reports
             var request2 = new RestRequest(Method.POST);
             request2.AddHeader("Content-Type", "application/json");
             request2.AddHeader("Authorization", "Bearer " + ADS_AccessToken);
-            request2.AddHeader("Amazon-Advertising-API-ClientId", "amzn1.application-oa2-client.79700b2ae79b4ae48f45afdec2003770");
-            request2.AddHeader("Amazon-Advertising-API-Scope", "2905469076170529");
+            request2.AddHeader("Amazon-Advertising-API-ClientId", ADS_ClientID);
+            request2.AddHeader("Amazon-Advertising-API-Scope", ADS_Scope);
             request2.AddParameter("undefined", "{\"reportDate\":\"20190930\", \"metrics\":\"campaignName,campaignId,adGroupName,adGroupId,currency,asin,sku,impressions,clicks,cost,attributedConversions1d,attributedConversions7d,attributedConversions14d,attributedConversions30d,attributedConversions1dSameSKU,attributedConversions7dSameSKU,attributedConversions14dSameSKU,attributedConversions30dSameSKU,attributedUnitsOrdered1d,attributedUnitsOrdered7d,attributedUnitsOrdered14d,attributedUnitsOrdered30d,attributedSales1d,attributedSales7d,attributedSales14d,attributedSales30d,attributedSales1dSameSKU,attributedSales7dSameSKU,attributedSales14dSameSKU,attributedSales30dSameSKU\"}", ParameterType.RequestBody);
             IRestResponse response2 = client2.Execute(request2);
             dynamic result2 = JsonConvert.DeserializeObject(response2.Content);
@@ -406,8 +417,8 @@ namespace Reports
             var request3 = new RestRequest(Method.GET);
             request3.AddHeader("Content-Type", "application/json");
             request3.AddHeader("Authorization", "Bearer " + ADS_AccessToken);
-            request3.AddHeader("Amazon-Advertising-API-ClientId", "amzn1.application-oa2-client.79700b2ae79b4ae48f45afdec2003770");
-            request3.AddHeader("Amazon-Advertising-API-Scope", "2905469076170529");
+            request3.AddHeader("Amazon-Advertising-API-ClientId", ADS_ClientID);
+            request3.AddHeader("Amazon-Advertising-API-Scope", ADS_Scope);
             IRestResponse response3 = client3.Execute(request3);
             dynamic result3 = JsonConvert.DeserializeObject(response3.Content);
             string DownloadLocation = result3.location;
@@ -418,7 +429,7 @@ namespace Reports
                 var client4 = new RestClient(DownloadLocation);
                 var request4 = new RestRequest(Method.GET);
                 request4.AddHeader("Authorization", "Bearer " + ADS_AccessToken);
-                request4.AddHeader("Amazon-Advertising-API-Scope", "2905469076170529");
+                request4.AddHeader("Amazon-Advertising-API-Scope", ADS_Scope);
                 IRestResponse response4 = client4.Execute(request4);
                 string DownloadURL = response4.ResponseUri.ToString();
 
@@ -439,7 +450,7 @@ namespace Reports
             // Uploading Amazon ADS Product Report to Azure Data Lake
             Azuresource = directoryFullPath + "ADSProductReport.csv";
             Azuredestination = "Meal prep haven/CA_AO/Advertised Product Reports/" + "AmazonADSProductReport-" + System.DateTime.Now.ToString("dd/MM/yyyy") + ".csv";
-            adlsFileSystemClient.FileSystem.UploadFile(adlsAccountName, Azuresource, Azuredestination, 1, false, true);
+            adlsFileSystemClient.FileSystem.UploadFile(AdlsAccountName, Azuresource, Azuredestination, 1, false, true);
             Console.WriteLine("Uploaded Amazon ADS Product Report");
 
 
@@ -450,7 +461,7 @@ namespace Reports
             var requestw1 = new RestRequest(Method.POST);
             requestw1.AddHeader("Content-Type", "application/json; charset=utf-8");
             requestw1.AddHeader("Accept", "application/json");
-            requestw1.AddHeader("Authorization", "Basic MGI5YmRjOTYtZjIzZS00MzgyLWEzZjktZjU3ODg1YjVhNTAyOkRuMkp2NFg5Y3ZkanRhMDB2VzI3TjBCV05GZHRKdkVI");
+            requestw1.AddHeader("Authorization", "Basic " + WP_Authorization);
             requestw1.AddParameter("undefined", "{\"grant_type\": \"client_credentials\",\"tpl\": \"{1ddbea91-a4ff-4b42-a25d-81a25b8cb727}\",\"user_login_id\": \"759\"}", ParameterType.RequestBody);
             IRestResponse responsew1 = clientw1.Execute(requestw1);
             dynamic resultw1 = JsonConvert.DeserializeObject(responsew1.Content);
@@ -473,8 +484,8 @@ namespace Reports
 
             // ------------------ REPORT 8 ------------------ // ---- API Method ----
             // Downloading Amazon MWS Reports - FBA_StorageFees Report through API
-            string accessKeyId = "AKIAI2NAVBW5PZCAUZLA";
-            string secretAccessKey = "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";
+            string accessKeyId = MWS_AccessID;
+            string secretAccessKey = MWS_SecretKey;
             MarketplaceWebServiceConfig config = new MarketplaceWebServiceConfig();
             config.ServiceURL = "https://mws.amazonservices.com";
             const string applicationName = "ApplicationName";
@@ -488,8 +499,8 @@ namespace Reports
                    applicationVersion,
                    config);
 
-            const string merchantID = "A2VNR33KX0E0D4";
-            const string mwsauthtoken = "amzn.mws.00b5081a-f693-4fbb-a5ee-a1b9c9fc1ad6";
+            string merchantID = MWS_MerchantID;
+            string mwsauthtoken = MWS_AuthToken;
 
             // Requesting the Report
             RequestReportRequest reportRequest = new RequestReportRequest();
@@ -541,7 +552,7 @@ namespace Reports
                         // Uploading FBA Storage Fees to Azure Data Lake
                         Azuresource = filename;
                         Azuredestination = "Amazon MWS Reports/" + "FBA_StorageFeesReport-" + System.DateTime.Now.ToString("dd/MM/yyyy") + ".txt";
-                        adlsFileSystemClient.FileSystem.UploadFile(adlsAccountName, Azuresource, Azuredestination, 1, false, true);
+                        adlsFileSystemClient.FileSystem.UploadFile(AdlsAccountName, Azuresource, Azuredestination, 1, false, true);
                         Console.WriteLine("Uploaded Amazon MWS FBA_StorageFees Report");
 
                         break;
