@@ -11,11 +11,8 @@ using System.Configuration;
 using RestSharp;
 using Newtonsoft.Json;
 using System.IO.Compression;
-using System.Collections.Generic;
 using MarketplaceWebService.Model;
 using MarketplaceWebService;
-using OtpNet;
-using System.Net;
 using System.Data.SqlClient;
 
 namespace Reports
@@ -101,11 +98,10 @@ namespace Reports
             ChromeOptions options = new ChromeOptions();
             options.AddUserProfilePreference("download.default_directory", directoryFullPath);  // Setting the default directory for the report to be downloaded
             options.AddUserProfilePreference("intl.accept_languages", "en-us"); // Setting the language as English
+            // options.AddArgument("--headless"); // Setting headless browser option
 
-            // Path of ChromeDrive.exe
             driver = new ChromeDriver(options);  // Assigning all the above options to Chrome Driver
             Console.WriteLine("Started");
-
 
             // Amazon Seller Central Login Page
             driver.Navigate().GoToUrl("https://sellercentral.amazon.com/");
@@ -113,6 +109,13 @@ namespace Reports
             driver.FindElement(By.Id("ap_email")).SendKeys(SC_LoginID);
             driver.FindElement(By.Id("ap_password")).SendKeys(SC_LoginPwd);
             driver.FindElement(By.Id("signInSubmit")).Click();
+             
+            /*// Generating OTP
+            var otpKeyStr = "WGHSYZEE2RJOO6OFMCBMB6HKNHDZRADH4TK2FDJ77YWQ5YFRWDBQ"; //  2FA secret key.
+            var otpKeyBytes = Base32Encoding.ToBytes(otpKeyStr);
+            var totp = new Totp(otpKeyBytes);
+            var twoFactorCode = totp.ComputeTotp(DateTime.UtcNow); // 2FA code at this time!
+            Console.WriteLine(twoFactorCode);*/
 
             // OTP
             Console.WriteLine("Please enter the OTP : ");
@@ -151,10 +154,6 @@ namespace Reports
 
                 // Editing the Business Report CSV
                 string BusRepfilePath =  directoryFullPath + "BusinessReport-" + DateTime.Now.AddDays(-1).ToString("MM/dd/yy") + ".csv"; 
-                /*foreach (string filename in Directory.GetFiles(directoryFullPath))
-                {
-                    BusRepfilePath = directoryFullPath + Path.GetFileName(filename);  // Getting the FileName   
-                }*/
                 Thread.Sleep(1000);
 
                 // Transaction Date
@@ -217,10 +216,7 @@ namespace Reports
             // Deleting the Business Report Files
             Array.ForEach(Directory.GetFiles(directoryFullPath), File.Delete);
 
-            // Closing the Browser
-            driver.Quit();
-
-
+            
             // ------------------ REPORT 2 ------------------ // ---- Automating Scraping Method ----
             // Downloading Reserved Inventory Report
             driver.Navigate().GoToUrl("https://sellercentral.amazon.com/gp/ssof/reports/search.html#orderAscending=&recordType=ReserveBreakdown&noResultType=&merchantSku=&fnSku=&FnSkuXORMSku=&reimbursementId=&orderId=&genericOrderId=&asin=&lpn=&shipmentId=&problemType=ALL_DEFECT_TYPES&hazmatStatus=&inventoryEventTransactionType=&fulfillmentCenterId=&transactionItemId=&inventoryAdjustmentReasonGroup=&eventDateOption=1&fromDate=mm%2Fdd%2Fyyyy&toDate=mm%2Fdd%2Fyyyy&startDate=&endDate=&fromMonth=1&fromYear=2019&toMonth=1&toYear=2019&startMonth=&startYear=&endMonth=&endYear=&specificMonth=1&specificYear=2019");
@@ -484,9 +480,6 @@ namespace Reports
                 Decompress(fileToDecompress);
             }
 
-            // Editing the Amazon ADS Json
-
-
             // Uploading Amazon ADS Product Report to Azure Data Lake
             Azuresource = directoryFullPath + "ADSProductReport.json";
             Azuredestination = "Meal prep haven/CA_AO/Advertised Product Reports/" + "AmazonADSProductReport-" + DateTime.Now.ToString("dd/MM/yyyy") + ".json";
@@ -520,9 +513,14 @@ namespace Reports
             dynamic resultw2 = JsonConvert.DeserializeObject(responsew2.Content);
             string jsonstr = resultw2._embedded.ToString();
 
-            // Editing the WorldPack API Json
-
             // Uploading WorldPack Report to Azure Data Lake
+            Azuresource = directoryFullPath + "WorldPackReport.json";
+            Azuredestination = "Third Party Reports/WorldPack Reports/" + "WorldPackReport-" + DateTime.Now.ToString("dd/MM/yyyy") + ".json";
+            adlsFileSystemClient.FileSystem.UploadFile(AdlsAccountName, Azuresource, Azuredestination, 1, false, true);
+            Console.WriteLine("Uploaded World Pack Report");
+
+            // Deleting the Amazon ADS Product Report File
+            Array.ForEach(Directory.GetFiles(directoryFullPath), File.Delete);
 
 
             // ------------------ REPORT 8 ------------------ // ---- API Method ----
@@ -607,6 +605,8 @@ namespace Reports
                 }
             }
 
+            // Closing the Browser
+            driver.Quit();
 
         }
 
